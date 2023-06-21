@@ -48,22 +48,22 @@ fn csv_out(blk: eth::Block) -> Result<Lines, substreams::errors::Error> {
 fn get_transfers<'a>(blk: &'a eth::Block) -> impl Iterator<Item = Transfer> + 'a {
     blk.receipts().flat_map(|receipt| {
         let hash = &receipt.transaction.hash;
-
         receipt.receipt.logs.iter().flat_map(|log| {
+            let block_number: &u64 = &blk.number;
             if let Some(event) = ERC20TransferEvent::match_and_decode(log) {
-                return vec![new_erc20_transfer(hash, log.block_index, event)];
+                return vec![new_erc20_transfer(hash, log.block_index, event, &block_number)];
             }
 
             if let Some(event) = ERC721TransferEvent::match_and_decode(log) {
-                return vec![new_erc721_transfer(hash, log.block_index, event)];
+                return vec![new_erc721_transfer(hash, log.block_index, event, &block_number)];
             }
 
             if let Some(event) = ERC1155TransferSingleEvent::match_and_decode(log) {
-                return vec![new_erc1155_single_transfer(hash, log.block_index, event)];
+                return vec![new_erc1155_single_transfer(hash, log.block_index, event, &block_number)];
             }
 
             if let Some(event) = ERC1155TransferBatchEvent::match_and_decode(log) {
-                return new_erc1155_batch_transfer(hash, log.block_index, event);
+                return new_erc1155_batch_transfer(hash, log.block_index, event, &block_number);
             }
 
             vec![]
@@ -71,7 +71,7 @@ fn get_transfers<'a>(blk: &'a eth::Block) -> impl Iterator<Item = Transfer> + 'a
     })
 }
 
-fn new_erc20_transfer(hash: &[u8], log_index: u32, event: ERC20TransferEvent) -> Transfer {
+fn new_erc20_transfer(hash: &[u8], log_index: u32, event: ERC20TransferEvent, block_number: &u64) -> Transfer {
     Transfer {
         schema: schema_to_string(Schema::Erc20),
         from: Hex(&event.from).to_string(),
@@ -82,10 +82,11 @@ fn new_erc20_transfer(hash: &[u8], log_index: u32, event: ERC20TransferEvent) ->
 
         operator: "".to_string(),
         token_id: "".to_string(),
+        block_number: *block_number,
     }
 }
 
-fn new_erc721_transfer(hash: &[u8], log_index: u32, event: ERC721TransferEvent) -> Transfer {
+fn new_erc721_transfer(hash: &[u8], log_index: u32, event: ERC721TransferEvent, block_number: &u64) -> Transfer {
     Transfer {
         schema: schema_to_string(Schema::Erc721),
         from: Hex(&event.from).to_string(),
@@ -96,6 +97,7 @@ fn new_erc721_transfer(hash: &[u8], log_index: u32, event: ERC721TransferEvent) 
         token_id: event.token_id.to_string(),
 
         operator: "".to_string(),
+        block_number: *block_number
     }
 }
 
@@ -103,6 +105,7 @@ fn new_erc1155_single_transfer(
     hash: &[u8],
     log_index: u32,
     event: ERC1155TransferSingleEvent,
+    block_number: &u64
 ) -> Transfer {
     new_erc1155_transfer(
         hash,
@@ -112,6 +115,7 @@ fn new_erc1155_single_transfer(
         &event.id,
         &event.value,
         &event.operator,
+        block_number,
     )
 }
 
@@ -119,6 +123,7 @@ fn new_erc1155_batch_transfer(
     hash: &[u8],
     log_index: u32,
     event: ERC1155TransferBatchEvent,
+    block_number: &u64
 ) -> Vec<Transfer> {
     if event.ids.len() != event.values.len() {
         log::info!("There is a different count for ids ({}) and values ({}) in transaction {} for log at block index {}, ERC1155 spec says lenght should match, ignoring the log completely for now",
@@ -146,6 +151,7 @@ fn new_erc1155_batch_transfer(
                 id,
                 value,
                 &event.operator,
+                &block_number,
             )
         })
         .collect()
@@ -159,6 +165,7 @@ fn new_erc1155_transfer(
     token_id: &BigInt,
     quantity: &BigInt,
     operator: &[u8],
+    block_number: &u64
 ) -> Transfer {
     Transfer {
         schema: schema_to_string(Schema::Erc1155),
@@ -169,6 +176,7 @@ fn new_erc1155_transfer(
         log_index: log_index as u64,
         operator: Hex(operator).to_string(),
         token_id: token_id.to_string(),
+        block_number: *block_number,
     }
 }
 

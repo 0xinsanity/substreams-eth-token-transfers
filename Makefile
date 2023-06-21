@@ -1,6 +1,6 @@
 ENDPOINT ?= mainnet.eth.streamingfast.io:443
 ROOT_DIR := $(shell dirname $(realpath $(firstword $(MAKEFILE_LIST))))
-SINK_RANGE := ":"
+SINK_RANGE := "12292922:"
 
 .PHONY: build
 build:
@@ -12,7 +12,7 @@ stream_csv: build
 
 .PHONY: stream_jsonl
 stream_jsonl: build
-	substreams run -e $(ENDPOINT) substreams.yaml jsonl_out -s 12292922 -t +10
+	substreams run --plaintext -e $(ENDPOINT) substreams.yaml jsonl_out -s 12292922 -t +10
 
 
 .PHONY: protogen
@@ -35,7 +35,7 @@ sink_entities_to_files: build
 .PHONY: sink_lines_to_files
 sink_lines_to_files: build
 	substreams-sink-files \
-	run \
+	run -p \
 	$(ENDPOINT) \
 	"$(ROOT_DIR)/substreams.yaml" \
 	jsonl_out \
