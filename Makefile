@@ -8,7 +8,7 @@ build:
 
 .PHONY: stream_csv
 stream_csv: build
-	substreams run -e $(ENDPOINT) substreams.yaml csv_out -s 0 -t +10
+	substreams run --plaintext -e $(ENDPOINT) substreams.yaml csv_out -s 0 -t +10
 
 .PHONY: stream_jsonl
 stream_jsonl: build
@@ -22,7 +22,7 @@ protogen:
 .PHONY: sink_entities_to_files
 sink_entities_to_files: build
 	substreams-sink-files \
-	run \
+	run -p \
 	$(ENDPOINT) \
 	"$(ROOT_DIR)/substreams.yaml" \
 	map_transfers \
