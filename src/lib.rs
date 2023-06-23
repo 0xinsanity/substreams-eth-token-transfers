@@ -81,8 +81,7 @@ fn new_erc20_transfer(hash: &[u8], log_index: u32, event: ERC20TransferEvent, bl
         log_index: log_index as u64,
 
         operator: "".to_string(),
-        token_id: "".to_string(),
-        block_number: *block_number,
+        token_id: "".to_string()
     }
 }
 
@@ -96,8 +95,7 @@ fn new_erc721_transfer(hash: &[u8], log_index: u32, event: ERC721TransferEvent, 
         log_index: log_index as u64,
         token_id: event.token_id.to_string(),
 
-        operator: "".to_string(),
-        block_number: *block_number
+        operator: "".to_string()
     }
 }
 
@@ -175,8 +173,7 @@ fn new_erc1155_transfer(
         trx_hash: Hex(hash).to_string(),
         log_index: log_index as u64,
         operator: Hex(operator).to_string(),
-        token_id: token_id.to_string(),
-        block_number: *block_number,
+        token_id: token_id.to_string()
     }
 }
 

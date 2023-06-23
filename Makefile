@@ -1,6 +1,6 @@
-ENDPOINT ?= mainnet.eth.streamingfast.io:443
+ENDPOINT ?= firehose-us-east-2.internal.dev.atherdigital.net:8545
 ROOT_DIR := $(shell dirname $(realpath $(firstword $(MAKEFILE_LIST))))
-SINK_RANGE := "12292922:"
+SINK_RANGE := "0:"
 
 .PHONY: build
 build:
@@ -8,11 +8,11 @@ build:
 
 .PHONY: stream_csv
 stream_csv: build
-	substreams run -e $(ENDPOINT) substreams.yaml csv_out -s 12292922 -t +10
+	substreams run -e $(ENDPOINT) substreams.yaml csv_out -s 0 -t +10
 
 .PHONY: stream_jsonl
 stream_jsonl: build
-	substreams run --plaintext -e $(ENDPOINT) substreams.yaml jsonl_out -s 12292922 -t +10
+	substreams run --plaintext -e $(ENDPOINT) substreams.yaml jsonl_out -s 0 -t +10
 
 
 .PHONY: protogen
